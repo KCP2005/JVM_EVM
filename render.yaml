@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: my-backend-service
+    env: node
+    region: oregon
+    plan: free
+    repo: https://github.com/KCP2005/JVM_EVM
+    branch: main
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        value: mongodb+srv://rathodkartik764:EKidDGUaCJY5A5GE@cluster0.bwiegzx.mongodb.net/event-registration
+      - key: JWT_SECRET
+        value: your_jwt_secret_key_change_this_in_production
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: UPLOAD_PATH
+        value: ./uploads

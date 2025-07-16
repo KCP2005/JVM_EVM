@@ -19,7 +19,28 @@ const ScanQRPage = () => {
   const lastScannedRef = useRef('');
   const location = useLocation();
   const navigate = useNavigate();
+
+  const playBeepAndVibrate = () => {
+    //  Beep sound using Web Audio API
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
   
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(1100, ctx.currentTime); // higher pitch
+    gainNode.gain.setValueAtTime(0.8, ctx.currentTime); // louder
+  
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+  
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.4); // longer duration
+  
+    // Mobile vibration (if supported)
+    if (navigator.vibrate) {
+      navigator.vibrate(300); // 300ms vibration
+    }
+  };
   
   // Fetch active event on component mount
   useEffect(() => {
@@ -44,9 +65,9 @@ const ScanQRPage = () => {
   }, []);
 
   const reloadPage = () => {
-    navigate('/dummy'); // go somewhere else temporarily
+    navigate('/dummy');
     setTimeout(() => {
-      navigate(location.pathname); // then back to current route
+      navigate(location.pathname);
     }, 50);
   };
   
@@ -67,7 +88,7 @@ const ScanQRPage = () => {
   
         const userResponse = await userAPI.getUserByPhone(phone);
         const userData = userResponse.data.data || userResponse.data;
-        console.log(userData.user)
+        console.log(userData.user);
         setUser(userData);
   
         const isCheckedIn = userData.checkIns?.some(
@@ -80,6 +101,9 @@ const ScanQRPage = () => {
         } else {
           await userAPI.checkInUser(phone);
           setCheckedIn(true);
+          playBeepAndVibrate(); 
+// Play beep and vibrate on successful check-in
+          //  Play beep sound on successful check-in
           toast.success('User checked in successfully');
         }
       } catch (error) {
@@ -91,17 +115,9 @@ const ScanQRPage = () => {
       }
     }
   };
-    
-  // Handle scan error (not currently used but kept for future use)
-  // const handleScanError = (error) => {
-  //   console.error('QR scan error:', error);
-  //   toast.error('Failed to scan QR code. Please try again.');
-  // };
-  
-  // Reset scanner
+
   const resetScanner = () => {
     reloadPage();
-    // window.location.reload();
     setUser(null);
     setCheckedIn(false);
     setError('');
@@ -109,8 +125,7 @@ const ScanQRPage = () => {
     setPhone(null);
     setScanning(true);
   };
-  
-  // Format date
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -119,7 +134,7 @@ const ScanQRPage = () => {
       day: 'numeric'
     });
   };
-  
+
   if (!activeEvent && !loading && !error) {
     return (
       <div className="text-center py-10">
@@ -128,7 +143,7 @@ const ScanQRPage = () => {
       </div>
     );
   }
-  
+
   return (
     <div>
       <div className="mb-6">
@@ -147,13 +162,13 @@ const ScanQRPage = () => {
           
           {scanning ? (
             <div className="relative">
-            <QrReader
-              constraints={{ facingMode: 'environment' }}
-              onResult={handleScan}
-              scanDelay={500}
-              className="w-full max-w-md mx-auto border rounded-lg overflow-hidden"
-              videoStyle={{ width: '100%', height: 'auto' }}
-            />
+              <QrReader
+                constraints={{ facingMode: 'environment' }}
+                onResult={handleScan}
+                scanDelay={500}
+                className="w-full max-w-md mx-auto border rounded-lg overflow-hidden"
+                videoStyle={{ width: '100%', height: 'auto' }}
+              />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-48 h-48 border-2 border-primary-500 rounded-lg"></div>
               </div>
